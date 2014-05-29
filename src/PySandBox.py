@@ -205,6 +205,6 @@ print f(3)
 print (lambda x: x*x)(3)
 
 def printallmethods(obj, spacing=15):
-    return '\n'.join(["%s %s" % (method.ljust(spacing),method.__doc__)
+    return '\n'.join(["%s %s" % (method.ljust(spacing), (lambda s: " ".join(s.split()))(str(getattr(obj,method).__doc__)))
                       for method in dir(obj) if callable(getattr(obj,method))])
 print printallmethods(string,10)
