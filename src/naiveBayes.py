@@ -1,7 +1,7 @@
 import numpy as np
 
 def createTrainingData():
-    postingList = [['my','dog','has','flea',\
+    postingList = [['my','dog','has','dog',\
                     'problems','help','please'],
                    ['my','dalmation','is','so',\
                     'cute','I','love','him'],
@@ -26,6 +26,16 @@ def createVocabList(dataSet):
     for wordList in dataSet:
         wordSet = wordSet | set(wordList)
     return list(wordSet)
+
+def bagOfWordsToVector(vocabSet,inputSet):
+    result = [0]*len(vocabSet)
+    for word in inputSet:
+        if word in vocabSet:
+            result[vocabSet.index(word)] = result[vocabSet.index(word)] + 1
+    if(DEBUG):
+        print inputSet
+        print result
+    return result
 
 def wordSetToVector(vocabSet,inputSet):
     result = [0]*len(vocabSet)
@@ -70,11 +80,11 @@ def classify(testData):
 
     postingVec = []
     for word in trainingWordList:
-        postingVec.append(wordSetToVector(trainingVocabList,word))
+        postingVec.append(bagOfWordsToVector(trainingVocabList,word))
 
     (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(postingVec, trainingClassVec)
 
-    testDataVector = np.array(wordSetToVector(trainingVocabList, testData))
+    testDataVector = np.array(bagOfWordsToVector(trainingVocabList, testData))
 
     # Bayes' Rule:
     #               P(w|C)*P(C) + alpha
