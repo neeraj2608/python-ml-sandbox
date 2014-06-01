@@ -74,30 +74,46 @@ def classify(testData):
 
     (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(postingVec, trainingClassVec)
 
-    pC0GivenData = 1
-    pC1GivenData = 1
-    for word in testData:
-        index = trainingVocabList.index(word)
-        pWordGivenC0 = pWGivenC0[index]
-        pWordGivenC1 = pWGivenC1[index]
-        pWord = pWs[index]
-        pC0GivenData = pC0GivenData * ((pWordGivenC0 * pC0 + 1) / (pWord + len(trainingVocabList))) # + 1 and + len(trainingVocabList) for laplacian smoothing
-        pC1GivenData = pC1GivenData * ((pWordGivenC1 * pC1 + 1) / (pWord + len(trainingVocabList))) # + 1 and + len(trainingVocabList) for laplacian smoothing
+    testDataVector = np.array(wordSetToVector(trainingVocabList, testData))
 
-    return pC0GivenData, pC1GivenData
+    # Bayes' Rule:
+    #               P(w|C)*P(C) + alpha
+    # P(C|w) = ---------------------------------
+    #          P(w) + alpha*(no. of total words)
+    # We assume alpha = 1
+    #
+    # Using numpy arrays, this is:
+    # pC0GivenData = (testDataVector * pWGivenC0 * pC0 + 1) / ((testDataVector * pWs) + len(trainingVocabList)) # + 1 and + len(trainingVocabList) for laplacian smoothing
+    # pC1GivenData = (testDataVector * pWGivenC1 * pC1 + 1) / ((testDataVector * pWs) + len(trainingVocabList)) # + 1 and + len(trainingVocabList) for laplacian smoothing
+    #
+    # Here,
+    # pC0GivenData is a vector containing p(C|w) for all w's in the vocabulary, with words not in testData having their elements set to ALPHA, and
+    # words in testData having actual p(C|w) values
+    # Since we only care about the RELATIVE magnitude of pC0GivenData and pC1GivenData, the denominator, which is the same for both
+    # values, can be ignored. This is what is done below.
+    pC0GivenData = testDataVector * pWGivenC0 * pC0 + 1
+    pC1GivenData = testDataVector * pWGivenC1 * pC1 + 1
+
+    # Note that we return logs so that small products multiplied together (later on) don't underflow (with
+    # the logs, we add the individual p(C|w) probabilities)
+    return np.log(pC0GivenData), np.log(pC1GivenData)
 
 if __name__ == '__main__':
-    DEBUG = 1
+    DEBUG = 0
 
-    testData = ['stop','my','posting']
+    testData = ['my','stupid','dog']
+    # testData = ['stupid','garbage']
+    # testData = ['love','my','dalmation']
 
-    pC0GivenData, pC1GivenData = classify(testData)
+    logPC0GivenData, logPC1GivenData = classify(testData)
 
     if(DEBUG):
-        if (pC0GivenData > pC1GivenData):
-            print "%s: %s" % (testData, "Class 0")
-        else:
-            print "%s: %s" % (testData, "Class 1")
-
+        print sum(logPC0GivenData)
+        print sum(logPC1GivenData)
         # print '\n'.join(str(elem) for elem in postingVec)
         # print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+
+    if (sum(logPC0GivenData) > sum(logPC1GivenData)):
+        print "%s: %s" % (testData, "Not spam")
+    else:
+        print "%s: %s" % (testData, "Spam")
