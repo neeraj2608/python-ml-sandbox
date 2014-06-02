@@ -1,5 +1,10 @@
 import numpy as np
 
+if __name__ == '__main__':
+    DEBUG = 1
+else:
+    DEBUG = 0
+
 def createTrainingData():
     postingList = [['my','dog','has','dog',\
                     'problems','help','please'],
@@ -44,7 +49,7 @@ def wordSetToVector(vocabSet,inputSet):
             result[vocabSet.index(word)] = 1
     return result
 
-def trainData(postingVec, classVec):
+def trainClassifier(postingVec, classVec):
     nWGivenC0 = np.zeros(len(postingVec[0]))
     nWGivenC1 = np.zeros(len(postingVec[0]))
     nWs = np.zeros(len(postingVec[0]))
@@ -74,17 +79,20 @@ def trainData(postingVec, classVec):
 
     return (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
-def classify(testData):
-    trainingWordList, trainingClassVec = createTrainingData()
+def trainData(trainingWordList, trainingClassVec):
     trainingVocabList = createVocabList(trainingWordList)
 
     postingVec = []
     for word in trainingWordList:
         postingVec.append(bagOfWordsToVector(trainingVocabList,word))
 
-    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(postingVec, trainingClassVec)
+    return trainClassifier(postingVec, trainingClassVec)
 
+def classify(testData, trainingWordList, trainingClassVec):
+    trainingVocabList = createVocabList(trainingWordList)
     testDataVector = np.array(bagOfWordsToVector(trainingVocabList, testData))
+
+    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(trainingWordList, trainingClassVec)
 
     # Bayes' Rule:
     #               P(w|C)*P(C) + alpha
@@ -109,13 +117,12 @@ def classify(testData):
     return np.log(pC0GivenData), np.log(pC1GivenData)
 
 if __name__ == '__main__':
-    DEBUG = 0
-
     testData = ['my','stupid','dog']
     # testData = ['stupid','garbage']
     # testData = ['love','my','dalmation']
 
-    logPC0GivenData, logPC1GivenData = classify(testData)
+    trainingWordList, trainingClassVec = createTrainingData()
+    logPC0GivenData, logPC1GivenData = classify(testData, trainingWordList, trainingClassVec)
 
     if(DEBUG):
         print sum(logPC0GivenData)
