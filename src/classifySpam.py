@@ -11,19 +11,12 @@ def parse(inp):
     listTokens = re.split(r'\W*', inp)
     return [elem.lower() for elem in listTokens]
 
-if __name__ == '__main__':
-    trainingData = []
-    trainingClassVec = []
-    for index in range(1,26):
-        trainingData.append(parse(open('email/spam/%d.txt' % index).read()))
-        trainingClassVec.append(1) # 1 is spam
-        trainingData.append(parse(open('email/ham/%d.txt' % index).read()))
-        trainingClassVec.append(0) # 0 is spam
-
+def runClassification(trainingData, trainingClassVec):
     # split training and test data
+    TESTINGDATASIZE = 10
     testingData = []
     actualTestingVec = []
-    for index in range(0,10):
+    for index in range(0,TESTINGDATASIZE):
         import random
         i = int(random.uniform(0,len(trainingData)))
         testingData.append(trainingData[i])
@@ -35,7 +28,6 @@ if __name__ == '__main__':
 
     predictedTestingVec = []
     for testData in testingData:
-        if(DEBUG): print testData
         testDataVector = np.array(naiveBayes.bagOfWordsToVector(trainingVocabList, testData))
         pC0GivenData = testDataVector * pWGivenC0 * pC0 + 1
         pC1GivenData = testDataVector * pWGivenC1 * pC1 + 1
@@ -60,4 +52,20 @@ if __name__ == '__main__':
         print 'misclassified:'
         print misClassified
 
-    print 'error ratio: %2.3f' % (float(error)/len(testingData))
+    return float(error)/TESTINGDATASIZE
+
+if __name__ == '__main__':
+    trainingData = []
+    trainingClassVec = []
+    for index in range(1,26):
+        trainingData.append(parse(open('email/spam/%d.txt' % index).read()))
+        trainingClassVec.append(1) # 1 is spam
+        trainingData.append(parse(open('email/ham/%d.txt' % index).read()))
+        trainingClassVec.append(0) # 0 is spam
+
+    error = 0
+    NUMRUNS = 10
+    for index in range(0,NUMRUNS):
+        error += runClassification(list(trainingData), list(trainingClassVec))
+
+    print "average error over %d runs: %f" % (NUMRUNS, float(error)/NUMRUNS)
