@@ -86,13 +86,14 @@ def trainData(trainingWordList, trainingClassVec):
     for word in trainingWordList:
         postingVec.append(bagOfWordsToVector(trainingVocabList,word))
 
-    return trainClassifier(postingVec, trainingClassVec)
+    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainClassifier(postingVec, trainingClassVec)
+
+    return trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
 def classify(testData, trainingWordList, trainingClassVec):
-    trainingVocabList = createVocabList(trainingWordList)
-    testDataVector = np.array(bagOfWordsToVector(trainingVocabList, testData))
+    trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(trainingWordList, trainingClassVec)
 
-    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(trainingWordList, trainingClassVec)
+    testDataVector = np.array(bagOfWordsToVector(trainingVocabList, testData))
 
     # Bayes' Rule:
     #               P(w|C)*P(C) + alpha
@@ -127,8 +128,8 @@ if __name__ == '__main__':
     if(DEBUG):
         print sum(logPC0GivenData)
         print sum(logPC1GivenData)
-        # print '\n'.join(str(elem) for elem in postingVec)
-        # print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+        print '\n'.join(str(elem) for elem in postingVec)
+        print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
     if (sum(logPC0GivenData) > sum(logPC1GivenData)):
         print "%s: %s" % (testData, "Not spam")
