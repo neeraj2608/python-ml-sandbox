@@ -88,6 +88,10 @@ def trainData(trainingWordList, trainingClassVec):
 
     (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainClassifier(postingVec, trainingClassVec)
 
+    if(DEBUG):
+        print '\n'.join(str(elem) for elem in postingVec)
+        print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+
     return trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
 def classify(testData, trainingWordList, trainingClassVec):
@@ -128,8 +132,6 @@ if __name__ == '__main__':
     if(DEBUG):
         print sum(logPC0GivenData)
         print sum(logPC1GivenData)
-        print '\n'.join(str(elem) for elem in postingVec)
-        print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
     if (sum(logPC0GivenData) > sum(logPC1GivenData)):
         print "%s: %s" % (testData, "Not spam")
