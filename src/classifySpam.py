@@ -1,3 +1,4 @@
+# Spam classification using Naive Bayes
 import naiveBayes
 import numpy as np
 
