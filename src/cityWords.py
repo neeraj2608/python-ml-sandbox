@@ -16,8 +16,10 @@ def parse(inp):
     listTokens = re.split(r'\W*', inp)
     return [elem.lower() for elem in listTokens]
 
-def runClassification(trainingData, trainingClassVec):
-    # split training and test data
+def runClassification(trainingVocabList, fullData, fullClassVec):
+    # split into training and test data
+    trainingData = fullData
+    trainingClassVec = fullClassVec
     TESTINGDATASIZE = 10
     testingData = []
     actualTestingVec = []
@@ -29,39 +31,25 @@ def runClassification(trainingData, trainingClassVec):
         del(trainingData[i])
         del(trainingClassVec[i])
 
-    trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = naiveBayes.trainData(trainingData, trainingClassVec)
+    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = naiveBayes.trainData(trainingVocabList, trainingData, trainingClassVec)
 
-    predictedTestingVec = []
     topPC0 = []
     topPC1 = []
     for testData in testingData:
         testDataVector = np.array(naiveBayes.bagOfWordsToVector(trainingVocabList, testData))
         pC0GivenData = testDataVector * pWGivenC0 * pC0 + 1
         pC1GivenData = testDataVector * pWGivenC1 * pC1 + 1
-        topPC0 = addUnique(topPC0, getTopN(trainingVocabList, pC0GivenData, 30))
-        topPC1 = addUnique(topPC1, getTopN(trainingVocabList, pC1GivenData, 30))
-        if sum(np.log(pC0GivenData)) > sum(np.log(pC1GivenData)):
-            predictedTestingVec.append(0)
-        else:
-            predictedTestingVec.append(1)
+        topPC0 = addUnique(topPC0, getTopN(trainingVocabList, pC0GivenData, 30)) # make a UNIQUE list of the most frequent words
+        topPC1 = addUnique(topPC1, getTopN(trainingVocabList, pC1GivenData, 30)) # make a UNIQUE list of the most frequent words
 
-    i = 0
-    error = 0
-    misClassified = []
-    for predicted in predictedTestingVec:
-        if (actualTestingVec[i] != predicted):
-            error += 1
-            misClassified.append(testingData[i])
-        i += 1
+    return getTopNFromList(topPC0,30), getTopNFromList(topPC1,30)
 
-    if(DEBUG):
-        print predictedTestingVec
-        print actualTestingVec
-        print 'num errors: %d' % error
-        print 'misclassified:'
-        print misClassified
-
-    return getTopNFromList(topPC0,30), getTopNFromList(topPC1,30), float(error)/TESTINGDATASIZE
+def removeNMostFrequentWords(vlst, allWords, n):
+    x = {}
+    for word in vlst:
+        x[word] = allWords.count(word)
+    sortedvlst = sorted(x.iteritems(), key=operator.itemgetter(1))
+    return [x for (x,y) in sortedvlst[:-n]]
 
 def addUnique(list1, list2):
     temp = dict(list1)
@@ -91,21 +79,28 @@ if __name__ == '__main__':
     ny = feedparser.parse('http://newyork.craigslist.org/stp/index.rss')
     sf = feedparser.parse('http://sfbay.craigslist.org/stp/index.rss')
     minlen = min(len(ny),len(sf))
-    trainingData = []
-    trainingClassVec = []
+    fullData = []
+    fullClassVec = []
+    allWords = []
     for index in range(0,minlen):
-        trainingData.append(parse(ny['entries'][index]['summary']))
-        trainingClassVec.append(1) # 1 is ny
-        trainingData.append(parse(sf['entries'][index]['summary']))
-        trainingClassVec.append(0) # 0 is sf
+        words = parse(ny['entries'][index]['summary'])
+        fullData.append(words)
+        allWords.extend(words)
+        fullClassVec.append(1) # 1 is ny
+        words = parse(sf['entries'][index]['summary'])
+        fullData.append(words)
+        allWords.extend(words)
+        fullClassVec.append(0) # 0 is sf
 
-    error = 0
-    NUMRUNS = 1
+    # remove the most frequent words (combined in both cities).
+    trainingVocabList = naiveBayes.createVocabList(fullData)
+    trainingVocabList = removeNMostFrequentWords(trainingVocabList, allWords, 30)
+
+    NUMRUNS = 2
     topPC0 = []
     topPC1 = []
     for index in range(0,NUMRUNS):
-        tPC0, tPC1, e = runClassification(list(trainingData), list(trainingClassVec))
-        error += e
+        tPC0, tPC1 = runClassification(trainingVocabList, list(fullData), list(fullClassVec))
         topPC0 += tPC0
         topPC1 += tPC1
 

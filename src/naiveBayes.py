@@ -79,9 +79,7 @@ def trainClassifier(postingVec, classVec):
 
     return (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
-def trainData(trainingWordList, trainingClassVec):
-    trainingVocabList = createVocabList(trainingWordList)
-
+def trainData(trainingVocabList, trainingWordList, trainingClassVec):
     postingVec = []
     for word in trainingWordList:
         postingVec.append(bagOfWordsToVector(trainingVocabList,word))
@@ -92,10 +90,12 @@ def trainData(trainingWordList, trainingClassVec):
         print '\n'.join(str(elem) for elem in postingVec)
         print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
-    return trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+    return (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
 
 def classify(testData, trainingWordList, trainingClassVec):
-    trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(trainingWordList, trainingClassVec)
+    trainingVocabList = createVocabList(trainingWordList)
+
+    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(trainingVocabList, trainingWordList, trainingClassVec)
 
     testDataVector = np.array(bagOfWordsToVector(trainingVocabList, testData))
 

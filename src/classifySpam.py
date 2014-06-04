@@ -25,7 +25,8 @@ def runClassification(trainingData, trainingClassVec):
         del(trainingData[i])
         del(trainingClassVec[i])
 
-    trainingVocabList, (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = naiveBayes.trainData(trainingData, trainingClassVec)
+    trainingVocabList = naiveBayes.createVocabList(trainingData)
+    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = naiveBayes.trainData(trainingVocabList, trainingData, trainingClassVec)
 
     predictedTestingVec = []
     for testData in testingData:
@@ -56,17 +57,17 @@ def runClassification(trainingData, trainingClassVec):
     return float(error)/TESTINGDATASIZE
 
 if __name__ == '__main__':
-    trainingData = []
-    trainingClassVec = []
+    fullData = []
+    fullClassVec = []
     for index in range(1,26):
-        trainingData.append(parse(open('email/spam/%d.txt' % index).read()))
-        trainingClassVec.append(1) # 1 is spam
-        trainingData.append(parse(open('email/ham/%d.txt' % index).read()))
-        trainingClassVec.append(0) # 0 is spam
+        fullData.append(parse(open('email/spam/%d.txt' % index).read()))
+        fullClassVec.append(1) # 1 is spam
+        fullData.append(parse(open('email/ham/%d.txt' % index).read()))
+        fullClassVec.append(0) # 0 is spam
 
     error = 0
     NUMRUNS = 10
     for index in range(0,NUMRUNS):
-        error += runClassification(list(trainingData), list(trainingClassVec))
+        error += runClassification(list(fullData), list(fullClassVec))
 
     print "average error over %d runs: %f" % (NUMRUNS, float(error)/NUMRUNS)
