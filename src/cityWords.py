@@ -1,6 +1,6 @@
 # Compare most frequently used words specific to a particular city
 # using naive bayes
-# Uses the fact that the highest features are weighted the most.
+# Uses the fact that the highest-frequency features are weighted the most.
 
 import naiveBayes
 import numpy as np
