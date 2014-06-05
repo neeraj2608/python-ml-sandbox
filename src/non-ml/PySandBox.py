@@ -1,3 +1,4 @@
+# Getting up to speed with Python
 import sys
 
 a = range(5)
