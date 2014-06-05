@@ -53,13 +53,11 @@ def trainClassifier(postingVec, classVec):
     nWGivenC0 = np.zeros(len(postingVec[0]))
     nWGivenC1 = np.zeros(len(postingVec[0]))
     nWs = np.zeros(len(postingVec[0]))
-    numAllWs = 0
     numAllWsC0 = 0
     numAllWsC1 = 0
     numC1 = 0
     index = 0
     for post in postingVec:
-        numAllWs = numAllWs + sum(post)
         nWs = np.add(nWs, np.array(post))
         if (classVec[index] == 0):
             nWGivenC0 = np.add(nWGivenC0, np.array(post))
@@ -72,30 +70,29 @@ def trainClassifier(postingVec, classVec):
 
     pWGivenC0 = nWGivenC0/numAllWsC0 # probability of each word, given class C0
     pWGivenC1 = nWGivenC1/numAllWsC1 # probability of each word, given class C1
-    pWs = nWs/numAllWs # probability of each word
 
     pC1 = float(numC1) / len(classVec) # probability of class 1
     pC0 = 1 - pC1 # probability of class 0
 
-    return (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+    return (pC0,pWGivenC0), (pC1,pWGivenC1)
 
 def trainData(trainingVocabList, trainingWordList, trainingClassVec):
     postingVec = []
     for word in trainingWordList:
         postingVec.append(bagOfWordsToVector(trainingVocabList,word))
 
-    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainClassifier(postingVec, trainingClassVec)
+    (pC0,pWGivenC0), (pC1,pWGivenC1) = trainClassifier(postingVec, trainingClassVec)
 
     if(DEBUG):
         print '\n'.join(str(elem) for elem in postingVec)
-        print (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+        print (pC0,pWGivenC0), (pC1,pWGivenC1)
 
-    return (pC0,pWGivenC0), (pC1,pWGivenC1), pWs
+    return (pC0,pWGivenC0), (pC1,pWGivenC1)
 
 def classify(testData, trainingWordList, trainingClassVec):
     trainingVocabList = createVocabList(trainingWordList)
 
-    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = trainData(trainingVocabList, trainingWordList, trainingClassVec)
+    (pC0,pWGivenC0), (pC1,pWGivenC1) = trainData(trainingVocabList, trainingWordList, trainingClassVec)
 
     testDataVector = np.array(bagOfWordsToVector(trainingVocabList, testData))
 

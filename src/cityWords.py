@@ -31,7 +31,7 @@ def runClassification(trainingVocabList, fullData, fullClassVec):
         del(trainingData[i])
         del(trainingClassVec[i])
 
-    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = naiveBayes.trainData(trainingVocabList, trainingData, trainingClassVec)
+    (pC0,pWGivenC0), (pC1,pWGivenC1) = naiveBayes.trainData(trainingVocabList, trainingData, trainingClassVec)
 
     topPC0 = []
     topPC1 = []

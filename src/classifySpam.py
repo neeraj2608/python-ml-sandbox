@@ -26,7 +26,7 @@ def runClassification(trainingData, trainingClassVec):
         del(trainingClassVec[i])
 
     trainingVocabList = naiveBayes.createVocabList(trainingData)
-    (pC0,pWGivenC0), (pC1,pWGivenC1), pWs = naiveBayes.trainData(trainingVocabList, trainingData, trainingClassVec)
+    (pC0,pWGivenC0), (pC1,pWGivenC1) = naiveBayes.trainData(trainingVocabList, trainingData, trainingClassVec)
 
     predictedTestingVec = []
     for testData in testingData:
