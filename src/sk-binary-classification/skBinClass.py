@@ -75,6 +75,8 @@ def createPlot(x_train, y_train):
     pt.legend(iris.target_names)
     pt.xlabel('Sepal Length')
     pt.xlabel('Sepal Width')
+    pt.show()
 
 if __name__ == '__main__':
+    createPlot(x_train, y_train)
     withPipeline()
