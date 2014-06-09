@@ -28,7 +28,7 @@ def withPipeline():
 
 def withoutPipeline():
     scaler = StandardScaler().fit(x_train) # for each x, (x - mean(all x))/std. dev. of x
-                                                         # this step computes the mean and std. dev.
+                                           # this step computes the mean and std. dev.
     x_train = scaler.transform(x_train)
     x_test = scaler.transform(x_test)
     clfer = SGDClassifier()
@@ -74,7 +74,7 @@ def createPlot(x_train, y_train):
         pt.scatter(xs,ys,c=colors[index])
     pt.legend(iris.target_names)
     pt.xlabel('Sepal Length')
-    pt.xlabel('Sepal Width')
+    pt.ylabel('Sepal Width')
     pt.show()
 
 if __name__ == '__main__':
