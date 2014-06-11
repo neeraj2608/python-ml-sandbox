@@ -2,7 +2,7 @@
 import sys
 
 a = range(5)
-print a[4]
+assert a[4] == 4
 
 # sometimes O(n^2)!
 s = ''
@@ -17,28 +17,28 @@ s = ''.join(t)
 
 s1 = {'a','b','c','a'} # set, the second 'a' will not be saved
 s2 = {'c','d','c','a'} # set, the second 'a' will not be saved
-print s1 | s2 # union
-print s1 & s2 # intersection
-print s1 - s2 # difference
+assert s1 | s2 == {'a','b','c','d'} # union
+assert s1 & s2 == {'a','c'} # intersection
+assert s1 - s2 == {'b'} # difference
 
 # explicit conversion
 y = str(1/9.0)
-print y
+assert y == '0.111111111111'
 
 # try blocks & exceptions
 def testTry(n):
     try:
         x = (1.0/n)
     except ZeroDivisionError:
-        print('divbyzero')
-    else:
-        print "result " + str(x)
+        #print 'divbyzero'
         pass
+    else:
+        return "result " + str(x)
     finally:
-        print "Done."
+        return "done"
 
-print testTry(0)
-print testTry(1)
+assert testTry(0) == 'done' # finally is always executed
+assert testTry(1) == 'done' # finally is always executed
 
 # functions
 def square(x):
@@ -46,8 +46,8 @@ def square(x):
         It must be the first thing in the function definition."""
     return x*x
 
-print (square(2))
-print square.__doc__
+assert (square(2)) == 4
+#print square.__doc__
 
 # functions and global variables
 # declare global vars with 'global' at the beginning
@@ -59,14 +59,15 @@ def writeGlob():
     global goodglobal
     badglobal = 4
     goodglobal = 5
-    print badglobal
+
+assert goodglobal == 3
 writeGlob()
-print "global %d" % (badglobal,) # still 3!
-print "global %d" % (goodglobal,) # now 5
+assert badglobal == 3
+assert goodglobal == 5
 
 # lambda
 square_ = lambda x : x * x
-print square_(2)
+assert square_(2) == 4
 
 # generators
 def myrange(n):
@@ -76,18 +77,20 @@ def myrange(n):
         i += 1
 # using it
 for j in myrange(4):
-    print (j)
+    #print (j)
+    pass
 # alternative using xrange
 # this is lazy!!
 for j in xrange(4):
-    print (j)
+    #print (j)
+    pass
 
 # dictionaries
 b = {1: 'a', 'b': 'c'}
-print b[1]
-print b.items()
+assert b[1] == 'a'
+assert b.items() == [(1, 'a'), ('b', 'c')]
 # comprehensions with list
-print ";".join(["%s=%s" % (k, v) for k, v in b.items()]) # x.split(';') will reverse this
+assert ";".join(["%s=%s" % (k, v) for k, v in b.items()]) == '1=a;b=c' # x.split(';') will reverse this
 
 # file example
 file_ = open('PySandBox.py','r')
@@ -113,21 +116,21 @@ class Point:
 #using it
 p1 = Point(1,2)
 p2 = Point(8,9)
-print p1
-print p1 + p2
+assert (p1 + p2).x == 9 # uses the __add__ definition
+assert (p1 + p2).y == 11 # uses the __add__ definition
 # class variables
-print p1.commonVar
-print p2.commonVar
+assert p1.commonVar == 1
+assert p2.commonVar == 1
 # you can change the class's commonVar like so:
 Point.commonVar = 3
-print p1.commonVar # prints 3
-print p2.commonVar # prints 3
+assert p1.commonVar == 3 # prints 3
+assert p2.commonVar == 3 # prints 3
 p1.commonVar = 4 # this changes only p1's commonVar (binds it to a new object)
-print p1.commonVar # now 4
-print p2.commonVar # is still 3
+assert p1.commonVar == 4 # now 4
+assert p2.commonVar == 3 # is still 3
 Point.commonVar = 5
-print p2.commonVar # now 5
-print p1.commonVar # still 4!
+assert p2.commonVar == 5# now 5
+assert p1.commonVar == 4 # still 4!
 
 #Inheriting from another class
 class PointChild(Point):
@@ -135,43 +138,43 @@ class PointChild(Point):
         self.x = x
 
 pc1 = PointChild("blah")
-print pc1.x
-print pc1.commonVar # this is 5 as it was for p2
+assert pc1.x == 'blah'
+assert pc1.commonVar == 5 # this is 5 as it was for p2
 pc1.y = 2 # this adds a y member ONLY to pc1 (not PointChild!)
 
 # this is searched for imports
 # you can modify it
-print sys.path
+#print sys.path
 
 # tuples
 (a,b,c) = (1,2,3)
-print a
-print b
+assert a == 1
+assert b == 2
 
 # list comprehensions
 li = [1,2,3]
-print [i*2 for i in li]
+assert [i*2 for i in li] == [2,4,6]
 # filtering using list comprehensions
-print [elem for elem in li if elem < 3]
+assert [elem for elem in li if elem < 3] == [1,2]
 
 # introspection
-import string
-print string.join.__doc__
+#import string
+#print string.join.__doc__
 
 li1 = ['a','b']
-print getattr(li1,"pop") # get a reference to an object (remember that fns are also objects)
+assert hasattr(li1,"pop") # get a reference to an object (remember that fns are also objects)
 getattr(li1,"pop")() # actually call pop using introspection
 getattr(li1,"bombo",li1.pop)() # if you try calling a function that doesn't exist,
                                # the third optional argument can be used as a safeguard
-print li1
+assert not li1
 
 # and
-print 'a' and 'b' and 'c' # if all are true, returns last value. prints 'c'
-print 'a' and 0   and 'c' # if any is false, returns that value. prints 0
+assert ('a' and 'b' and 'c') == 'c' # if all are true, returns last value. prints 'c'
+assert ('a' and 0   and 'c') == 0 # if any is false, returns that value. prints 0
 
 # or
-print ''  or 0 or 'c' # if all are false, returns last value. prints 'c'
-print 'a' or 0 or 'c' # if any is true, returns that value. prints 'a'
+assert (''  or 0 or 'c') == 'c' # if all are false, returns last value. prints 'c'
+assert ('a' or 0 or 'c') == 'a' # if any is true, returns that value. prints 'a'
 
 # a?b:c. Useful when you can't use if e.g. in lambdas
 a = 0
@@ -188,22 +191,22 @@ c = 1
 ((a and [b]) or [c])[0]
 
 # truth table for a?b:c
-print "truth table for a?b:c"
-for a in [0,1]:
-    for b in [0,1]:
-        for c in [0,1]:
-            print str(a) + " " + str(b) + " " + str(c) + " " + str (((a and [b]) or [c])[0])
+#print "truth table for a?b:c"
+#for a in [0,1]:
+#    for b in [0,1]:
+#        for c in [0,1]:
+#            print str(a) + " " + str(b) + " " + str(c) + " " + str (((a and [b]) or [c])[0])
 
 # equivalently,
-print "truth table for a?b:c"
-print '\n'.join([str(a) + " " + str(b) + " " + str(c) + " " + str (((a and [b]) or [c])[0])
-                 for a in range (2) for b in range (2) for c in range (2)])
+#print "truth table for a?b:c"
+#print '\n'.join([str(a) + " " + str(b) + " " + str(c) + " " + str (((a and [b]) or [c])[0])
+#                 for a in range (2) for b in range (2) for c in range (2)])
 
 # lambdas. cannot have if's. Usually single line
 f = (lambda x: x*x)
-print f(3)
+assert f(3) == 9
 # or equivalently,
-print (lambda x: x*x)(3)
+assert (lambda x: x*x)(3) == 9
 
 def printallmethods(obj, spacing=15):
     return '\n'.join(["%s %s" % (method.ljust(spacing), (lambda s: " ".join(s.split()))(str(getattr(obj,method).__doc__)))
@@ -212,9 +215,9 @@ def printallmethods(obj, spacing=15):
 
 # Generators
 # Compare this:
-print sum([x*x for x in range(0,10)])
+assert sum([x*x for x in range(0,10)]) == 285
 # with this:
-print sum(x*x for x in xrange(0,10))
+assert sum(x*x for x in xrange(0,10)) == 285
 # the second one is LAZY. It only computes values as they are needed. It also doesn't compute intermediate values. So, whereas the first
 # code will generate the entire list BEFORE evaluating the sum, the second will just calculate the individual items and sum them as it
 # goes along.
@@ -229,15 +232,15 @@ def my_range(stop):
         val += 1
 # here, yield makes my_range return a generator object
 # observe:
-print type(my_range(1))
+import types
+assert type(my_range(1)) is types.GeneratorType
 # the generator object is an iterator. e.g. it has a next method
 # observe:
-print my_range(1).next.__doc__
+assert hasattr(my_range(1),'next')
 # exiting the iteration can be done by raising a StopIteration
 # or by falling off the end of the generator code.
 # the iterator is what's used by the for loop below:
-for i in my_range(3):
-    print i
+assert [i for i in my_range(3)] == [0,1,2]
 
 # Classmethods
 # this java code:
@@ -266,7 +269,7 @@ class X:
     a = None
     def printA(cls, a="hello"):
         cls.a = a
-        print cls.__name__+".a = "+cls.a
+        return cls.__name__+".a = "+cls.a
     printA = classmethod(printA)
 
 class X_Child1(X):
@@ -274,15 +277,16 @@ class X_Child1(X):
 
 # note that in the calls below, we don't pass in the cls argument. It is passed
 # in implicitly
-X().printA() # prints "hello". Sets the 'a' of X
-X_Child1().printA("hi") # prints "hi". Sets the 'a' of X_Child1
+assert X().printA() == 'X.a = hello' # prints "hello". Sets the 'a' of X
+assert X_Child1().printA("hi") == 'X_Child1.a = hi' # prints "hi". Sets the 'a' of X_Child1
 # what happens here is that when printA is invoked on
 # X_Child1, the a being accessed is the a belonging to
 # the X_Child CLASS, and not the X_Child() instance object.
 # To illustrate that instances have nothing to do with this,
 # this also works:
-X.printA() # Compare with above. 'X' instead of 'X()'. still prints "hello"
-X_Child1.printA("hi") # Compare with above. 'X_Child1' instead of 'X_Child1()'. still prints "hi"
+assert X.printA() == 'X.a = hello' # Compare with above. 'X' instead of 'X()'. still prints "hello"
+assert X_Child1.printA("hi") == 'X_Child1.a = hi' # Compare with above. 'X_Child1' instead of 'X_Child1()'. still prints "hi"
+assert X_Child1.printA() == 'X_Child1.a = hello' # Note that this will return hello which is the default value of X.printA's a argument
 
 # Here's another feature of classmethods:
 # subclasses can redefine the behavior of classmethods of their parents
@@ -291,16 +295,14 @@ class X_Child2(X):
     a = None
     def printA(cls, a):
         cls.a = a
-        print cls.__name__+".a*2 = "+cls.a*2
+        return cls.__name__+".a*2 = "+cls.a*2
     printA = classmethod(printA)
 
-X.printA() # still prints "hello"
-X_Child2.printA("hi") # now prints "hihi"
-# this functionality is NOT possible in Java
-# because subclasses CANNOT override STATIC
-# methods of their superclasses (they can
-# override instance methods but that's another
-# story)
+assert X().printA() == 'X.a = hello' # still prints "hello"
+assert X_Child2.printA("hi") == 'X_Child2.a*2 = hihi' # now prints "hihi"
+# doing this is NOT possible in Java because subclasses CANNOT override STATIC
+# methods of their superclasses (they can override instance methods but that's
+# another story)
 
 # Here's something else to be aware of if you're
 # trying to invoke the super class's classmethod
@@ -309,20 +311,64 @@ class X(object):
     @classmethod
     def printA(cls, a="hello"):
         cls.a = a
-        print cls.__name__+".a = "+cls.a
+        return cls.__name__+".a = "+cls.a
 
 class X_Child3(X):
     a = None
     @classmethod
     def printA(cls, a):
         cls.a = a
-        print cls.__name__+".a*2 = "+cls.a*2
+        return (cls.__name__+".a*2 = "+cls.a*2,
         #X.printA(cls, a) # this will throw an error because when we invoke X's printA, it is already getting passed
         #                 # in a cls class object as the first argument
-        super(X_Child3, cls).printA("hi") # NOTE: this will work only if the superclass X extends from object i.e.,
-                                          # class X(object): ...
-                                          # this is a limitation imposed by super
-        super(X_Child3, cls).printA() # NOTE: this will work only if the superclass X extends from object i.e.,
+        super(X_Child3, cls).printA("hi"), # NOTE: this will work only if the superclass X extends from object i.e.,
+                                           # class X(object): ...
+                                           # this is a limitation imposed by super
+        super(X_Child3, cls).printA()) # NOTE: this will work only if the superclass X extends from object i.e.,
+                                       # this is a limitation imposed by super
 
-X.printA() # still prints "hello"
-X_Child3.printA("hi") # prints "hihi" then "hi" from X's printA then "hello" from X's printA
+assert X.printA() == 'X.a = hello' # still prints "hello"
+assert X_Child3.printA("hi") == ('X_Child3.a*2 = hihi','X_Child3.a = hi','X_Child3.a = hello') # prints "hihi" then "hi" from X's printA then "hello" from X's printA
+                                                                                               # note that cls is the class object that the method was invoked upon (in
+                                                                                               # this case, X_Child3 and NOT X)
+
+# Properties (aka fuck-you Java getters and setters)
+# Let's start here:
+class X:
+    def __init__(self, email=None):
+        self.email = email
+x = X()
+x.email = "blahblah"
+assert x.email == 'blahblah' # works as expected
+# Now let's add some validation on the email
+class X:
+    def __init__(self, email=None):
+        self.email = email
+
+    def setEmail(self, email=None):
+        if email == None or not ('@' in email):
+            pass
+        else:
+            self.email = email
+
+    def getEmail(self):
+        return self.email
+
+    email = property(getEmail, setEmail)
+
+x = X()
+x.setEmail("blahblah")
+assert x.getEmail() == None # prints None as expected
+x.setEmail("blah@blah.com")
+assert x.getEmail() == 'blah@blah.com' # prints 'blah@blah.com' as expected
+# this is the beautiful part. The old way of accessing the instance variable
+# directly still works! Observe:
+x.email = 'blah1@blah.com'
+assert x.email == 'blah1@blah.com' # still works! prints 'blah1@blah.com'
+# a. No need to make the variable private (there's no such thing in Python anyway).
+# b. Old client code doesn't need to change! Compare that with Java ugliness.
+# c. Setter/Getter logic can be added at any time.
+
+# Mix-ins
+# Think of mixins as interfaces that are already implemented. Mixins let you add
+# small pieces of functionality to your class.
