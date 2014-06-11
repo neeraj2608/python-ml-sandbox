@@ -372,3 +372,18 @@ assert x.email == 'blah1@blah.com' # still works! prints 'blah1@blah.com'
 # Mix-ins
 # Think of mixins as interfaces that are already implemented. Mixins let you add
 # small pieces of functionality to your class.
+class PrintMixin(object):
+    def printThis(self):
+        return self.__class__.__name__
+
+class OtherPrintMixin(object):
+    def printThis(self):
+        return 'not your name'
+
+class TestPrintMixin(OtherPrintMixin, PrintMixin): pass
+tpm = TestPrintMixin()
+assert tpm.printThis() == 'not your name' # method resolution order (mro) is depth-first, left to right. In this case, OtherPrintMixin wins
+
+class TestPrintMixin(PrintMixin, OtherPrintMixin): pass
+tpm = TestPrintMixin()
+assert tpm.printThis() == 'TestPrintMixin' # method resolution order (mro) is depth-first, left to right. In this case, PrintMixin wins
