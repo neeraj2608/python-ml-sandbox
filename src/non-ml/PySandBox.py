@@ -208,4 +208,121 @@ print (lambda x: x*x)(3)
 def printallmethods(obj, spacing=15):
     return '\n'.join(["%s %s" % (method.ljust(spacing), (lambda s: " ".join(s.split()))(str(getattr(obj,method).__doc__)))
                       for method in dir(obj) if callable(getattr(obj,method))])
-print printallmethods(string,10)
+#print printallmethods(string,10)
+
+# Generators
+# Compare this:
+print sum([x*x for x in range(0,10)])
+# with this:
+print sum(x*x for x in xrange(0,10))
+# the second one is LAZY. It only computes values as they are needed. It also doesn't compute intermediate values. So, whereas the first
+# code will generate the entire list BEFORE evaluating the sum, the second will just calculate the individual items and sum them as it
+# goes along.
+# xrange is also lazy
+# enumerate is also lazy
+
+# Here's another use of generators
+def my_range(stop):
+    val = 0
+    while val < stop:
+        yield val
+        val += 1
+# here, yield makes my_range return a generator object
+# observe:
+print type(my_range(1))
+# the generator object is an iterator. e.g. it has a next method
+# observe:
+print my_range(1).next.__doc__
+# exiting the iteration can be done by raising a StopIteration
+# or by falling off the end of the generator code.
+# the iterator is what's used by the for loop below:
+for i in my_range(3):
+    print i
+
+# Classmethods
+# this java code:
+# public class X{
+#    public static String a = "hello"
+#    public static void printA(){
+#        System.out.println(X.a);
+#    }
+#  }
+# is equivalent to
+a = "Hello"
+def printA():
+    print a
+# it is NOT equivalent to
+class X:
+    a = "hello"
+    def printA(cls):
+        print X.a
+    printA = classmethod(printA) # note that @classmethod is a decorator alternative to doing this
+# so why have a classmethod builtin at all?
+# classmethods are different in that they are IMPLICITLY
+# passed in the class object they were invoked
+# on as the first argument.
+# observe below:
+class X:
+    a = None
+    def printA(cls, a="hello"):
+        cls.a = a
+        print cls.__name__+".a = "+cls.a
+    printA = classmethod(printA)
+
+class X_Child1(X):
+    a = None
+
+# note that in the calls below, we don't pass in the cls argument. It is passed
+# in implicitly
+X().printA() # prints "hello". Sets the 'a' of X
+X_Child1().printA("hi") # prints "hi". Sets the 'a' of X_Child1
+# what happens here is that when printA is invoked on
+# X_Child1, the a being accessed is the a belonging to
+# the X_Child CLASS, and not the X_Child() instance object.
+# To illustrate that instances have nothing to do with this,
+# this also works:
+X.printA() # Compare with above. 'X' instead of 'X()'. still prints "hello"
+X_Child1.printA("hi") # Compare with above. 'X_Child1' instead of 'X_Child1()'. still prints "hi"
+
+# Here's another feature of classmethods:
+# subclasses can redefine the behavior of classmethods of their parents
+# Observe:
+class X_Child2(X):
+    a = None
+    def printA(cls, a):
+        cls.a = a
+        print cls.__name__+".a*2 = "+cls.a*2
+    printA = classmethod(printA)
+
+X.printA() # still prints "hello"
+X_Child2.printA("hi") # now prints "hihi"
+# this functionality is NOT possible in Java
+# because subclasses CANNOT override STATIC
+# methods of their superclasses (they can
+# override instance methods but that's another
+# story)
+
+# Here's something else to be aware of if you're
+# trying to invoke the super class's classmethod
+class X(object):
+    a = None
+    @classmethod
+    def printA(cls, a="hello"):
+        cls.a = a
+        print cls.__name__+".a = "+cls.a
+
+class X_Child3(X):
+    a = None
+    @classmethod
+    def printA(cls, a):
+        cls.a = a
+        print cls.__name__+".a*2 = "+cls.a*2
+        #X.printA(cls, a) # this will throw an error because when we invoke X's printA, it is already getting passed
+        #                 # in a cls class object as the first argument
+        super(X_Child3, cls).printA("hi") # NOTE: this will work only if the superclass X extends from object i.e.,
+                                          # class X(object): ...
+                                          # this is a limitation imposed by super
+        super(X_Child3, cls).printA() # NOTE: this will work only if the superclass X extends from object i.e.,
+
+X.printA() # still prints "hello"
+X_Child3.printA("hi") # prints "hihi" then "hi" from X's printA then "hello" from X's printA
