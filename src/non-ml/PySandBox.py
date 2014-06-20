@@ -93,7 +93,8 @@ assert b.items() == [(1, 'a'), ('b', 'c')]
 assert ";".join(["%s=%s" % (k, v) for k, v in b.items()]) == '1=a;b=c' # x.split(';') will reverse this
 
 # file example
-file_ = open('PySandBox.py','r')
+from os import path
+file_ = open(path.join(path.dirname(path.realpath(__file__)),'PySandBox.py'),'r')
 #for line in file_:
 #    print(line)
 file_.close()
@@ -387,3 +388,61 @@ assert tpm.printThis() == 'not your name' # method resolution order (mro) is dep
 class TestPrintMixin(PrintMixin, OtherPrintMixin): pass
 tpm = TestPrintMixin()
 assert tpm.printThis() == 'TestPrintMixin' # method resolution order (mro) is depth-first, left to right. In this case, PrintMixin wins
+
+# Regex magic
+import re
+# group numbering starts with 1. groups are counted by looking at the number of '(' encountered.
+# group(0) for re.match/re.search is the whole matching string
+# groups can also be named, of course.
+# (?P<name>...) names a group. You can refer back to this group using \g<name>
+assert re.sub(r'(?P<first>.*)(white|red) (king|queen)',r'\3 \2 \g<first>','the red queen') == 'queen red the '
+
+# (?:...) makes a non-capturing group. A non-capturing group is not counted for backreferencing
+# observe below. Since the first () is non-counting, 'newton' comes out as group 1:
+assert re.match(r'(?:.*)(newton|asimov)','isaac newton').group(1) == 'newton'
+# compare with the default capturing behavior below. 'newton' is now group 2.
+assert re.match(r'(.*)(newton|asimov)','isaac newton').group(2) == 'newton'
+# group 1 is now 'isaac ':
+assert re.match(r'(.*)(newton|asimov)','isaac newton').group(1) == 'isaac '
+
+# lookaheads
+# lookaheads can be +ve or -ve. Note that the lookahead itself is not considered a matched group. See example below.
+# (?=...) is a +ve lookahead. Here's an example:
+assert re.match(r'(.*)(?=newton)','isaac newton').group(0) == 'isaac '
+# keeping in line with group numbering described above, group(1) is also 'isaac '
+assert re.match(r'(.*)(?=newton)','isaac newton').group(1) == 'isaac '
+# note that lookaheads themselves are not considered matched groups. So, there is no group(2) in this example
+# assert re.match(r'(.*)(?=newton)','isaac newton').group(2) == 'newton' # there is no group 2!
+
+# (?!...) is a -ve lookahead. Here's an example:
+assert re.match(r'(isaac)(?!notnewton)','isaac newton').group(0) == 'isaac'
+assert re.match(r'(isaac )(?!notnewton)','isaac newton').group(0) == 'isaac '
+# if we used (.*) instead of (isaac) in the first subpattern, our match would expand to the whole string as the
+# regex engine successively expands its search while making sure that what follows is NOT 'notnewton'. Since we
+# don't actually have 'notnewton' in our string, our regex engine will sucessfully reach the end of the whole
+# string, at which point it will exit
+assert re.match(r'(.*)(?!notnewton)','isaac newton').group(0) == 'isaac newton'
+
+# lookbehinds
+# like lookaheads, lookbehinds can be +ve or -ve.
+# (?<=...) is a +ve lookbehind. Here's an example:
+assert re.search(r'(?<=isaac).*','isaac newton').group(0) == ' newton'
+# note that re.match will NEVER work with POSITIVE lookbehinds because match looks to see if zero or
+# more characters at the BEGINNING of the string match the given pattern. There is nothing to look
+# behind to at the beginning of a string.
+assert re.match(r'(?<=isaac).*','isaac newton') == None
+# note that re.match will ALWAYS work with NEGATIVE lookbehinds because match looks to see if zero or
+# more characters at the BEGINNING of the string match the given pattern. There is nothing to look
+# behind to at the beginning of a string and hence a NEGATIVE lookbehind will always succeed.
+assert re.match(r'(?<!isaac )(.*)','isaac newton').group(0) == 'isaac newton'
+# Note that lookbehinds cannot have a variable pattern so a* or a{2,3} are NOT allowed. a{3} is okay, though.
+
+# ternary regexes
+# (?(id/name)true|false) matches with true if id/name exists or with false otherwise. Observe:
+assert re.match(r'(abc)?(XXX)(?(1)cba|xyz)','abcXXXcba').group(0) == 'abcXXXcba'
+# Note that the (?(id/name)true|false) subpattern itself doesn't count as a matching group. Hence,
+# assert re.match(r'(abc)?(XXX)(?(1)cba|xyz)','abcXXXcba').group(3) == 'XXX' does NOT exist
+assert re.match(r'(abc)?(XXX)(?(1)cba|xyz)','abcXXXcba').group(1) == 'abc'
+assert re.match(r'(abc)?(XXX)(?(1)cba|xyz)','abcXXXcba').group(2) == 'XXX'
+# another example:
+assert re.match(r'(abc)?(XXX)(?(1)cba|xyz)','XXXxyz').group(0) == 'XXXxyz'
